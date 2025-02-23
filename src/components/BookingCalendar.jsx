@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
-export default function BookingCalendar({ bookings }) {
+export default function BookingCalendar({ bookings, onDateClick }) {
   return (
     <Card className="p-4 w-full max-w-md">
       <CardContent>
@@ -12,8 +12,13 @@ export default function BookingCalendar({ bookings }) {
           modifiers={{
             booked: bookings.map((b) => new Date(b.date)),
           }}
-          modifiersStyles={{
-            booked: { backgroundColor: "#ff6666", color: "white" }, // Booked dates in red
+          modifiersClassNames={{
+            booked: "bg-red-500 text-white",
+          }}
+          onDayClick={(date) => {
+            const formattedDate = format(date, "yyyy-MM-dd");
+            const booking = bookings.find((b) => b.date === formattedDate);
+            if (booking) onDateClick(booking);
           }}
         />
       </CardContent>

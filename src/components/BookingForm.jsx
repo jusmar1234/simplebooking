@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -8,54 +7,67 @@ import { format } from "date-fns";
 
 export default function BookingForm({ addBooking, bookings }) {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [contact, setContact] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
+  const [occasion, setOccasion] = useState("");
+  const [payment, setPayment] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!name || !email || !selectedDate) return alert("Please fill all fields!");
+    if (!name || !contact || !selectedDate || !occasion || !payment) {
+      return alert("Please fill all fields!");
+    }
 
     const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
-    // Prevent duplicate bookings
     if (bookings.some((b) => b.date === formattedDate)) {
       alert("This date is already booked!");
       return;
     }
 
-    addBooking({ name, email, date: formattedDate });
+    if (payment < 1000 || payment > 10000) {
+      alert("Payment must be between $1,000 and $10,000.");
+      return;
+    }
+
+    addBooking({ name, contact, date: formattedDate, occasion, payment });
     setName("");
-    setEmail("");
+    setContact("");
     setSelectedDate(null);
+    setOccasion("");
+    setPayment("");
   };
 
   return (
-    <Card className="p-4 w-full max-w-md">
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+      <Input placeholder="Contact Number" value={contact} onChange={(e) => setContact(e.target.value)} />
+      
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline">
+            {selectedDate ? format(selectedDate, "PPP") : "Select Date"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            disabled={(date) => bookings.some((b) => b.date === format(date, "yyyy-MM-dd"))}
+          />
+        </PopoverContent>
+      </Popover>
 
-          {/* ShadCN Date Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline">
-                {selectedDate ? format(selectedDate, "PPP") : "Select Date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(date) => bookings.some((b) => b.date === format(date, "yyyy-MM-dd"))}
-              />
-            </PopoverContent>
-          </Popover>
+      <Input placeholder="Occasion" value={occasion} onChange={(e) => setOccasion(e.target.value)} />
+      <Input
+        type="number"
+        placeholder="Payment (1k-10k)"
+        value={payment}
+        onChange={(e) => setPayment(e.target.value)}
+      />
 
-          <Button type="submit" className="w-full">Book Now</Button>
-        </form>
-      </CardContent>
-    </Card>
+      <Button type="submit" className="w-full">Book Now</Button>
+    </form>
   );
 }
